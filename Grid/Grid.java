@@ -54,13 +54,42 @@ public class Grid{
 	}
 	
 	public void placeShip(int x, int y, Ship ship, char placement){
-		/*
+		/**
 		 * ship 'starts' at (x, y) and goes either down (placement = 'V' (i.e. vertical)) or to the right (placement = 'H' (i.e. horizontal))
 		 * 
 		 * if (x,y) is too low for the ship to go down/right, then it will go up/left
 		 * 
-		 * add exceptions later
+		 * add exceptions later (check if the ship is not too long in general)
 		 */
-		
+		if(placement == 'H'){
+			/*
+			 * checking if the ship is too long to go right
+			 */
+			if(coords.length - x < ship.getLength()){ //i.e. ship is too long
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x-i][y] = true;
+				}
+			}
+			else{ //i.e. placing from right to left
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x+i][y] = true;
+				}
+			}
+		}
+		else if(placement == 'V'){
+			/*
+			 * checking if the ship is too long to go down
+			 */
+			if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x][y-i] = true;
+				}
+			}
+			else{ //i.e. placing from right to left
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x][y+i] = true;
+				}
+			}
+		}
 	}
 }
