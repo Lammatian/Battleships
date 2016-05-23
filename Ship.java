@@ -20,14 +20,6 @@ public abstract class Ship{
 		this.length = length;
 	}
 	
-	public Ship(){
-		/*
-		 * Sets width and length to 1
-		 */
-		this.width = 1;
-		this.length = 1;
-	}
-	
 	public void setWidth(int width){
 		/*
 		 * Add exceptions later
