@@ -1,12 +1,12 @@
 package Board;
 
-import Grid.Grid;
-
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,9 +14,20 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
+import Grid.Grid;
+import java.awt.Font;
+
 public class Board extends JPanel implements ActionListener{
 
 	private final String COLS = "ABCDEFGHIJ";
+	private boolean ingame;
+	private int turnCounter;
+	private JLabel turnLabel;
+	private JLabel lastMoveLabel;
+	private JLabel announcementsLabel;
+	private JLabel whichPlayerLabel;
+	private Grid p1;
+	private Grid p2;
 	/**
 	 * Create the panel.
 	 */
@@ -27,32 +38,62 @@ public class Board extends JPanel implements ActionListener{
 	public void initBoard(){
 		setLayout(null);
 		
-		JPanel mainView = new JPanel(new GridLayout(11, 11));
-		mainView.setBounds(204, 224, 385, 385);
-		//mainView.setBackground(new Color(204,119,34));
-		mainView.setBorder(new LineBorder(Color.BLACK, 2));
-		add(mainView);
+		ingame = false;
 		
-		JPanel secondView = new JPanel(new GridLayout(11, 11));
-		secondView.setBounds(10, 27, 186, 186);
-		//secondView.setBackground(new Color(204,119,34));
-		secondView.setBorder(new LineBorder(Color.BLACK, 2));
-		add(secondView);
+		Action newGameAction = new AbstractAction("New game"){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setupNewGame();
+            }
+		};
 		
+		//creating menu
 		JToolBar menu = new JToolBar();
 		menu.setFloatable(false);
 		menu.setBounds(0, 0, 620, 23);
-		menu.add(new JButton("New game")); //TODO - add functionality
-		menu.addSeparator();
-		menu.add(new JButton("Restart")); //TODO - add functionality
+		menu.add(newGameAction);
 		menu.addSeparator();
 		menu.add(new JButton("Swap views")); //TODO - add functionality
 		menu.addSeparator();
 		menu.add(new JButton("Undo")); //TODO - add functionality
 		add(menu);
 		
+		//the big grid on the screen
+		JPanel mainView = new JPanel(new GridLayout(11, 11));
+		mainView.setBounds(204, 224, 385, 385);
+		mainView.setBorder(new LineBorder(Color.BLACK, 2));
+		add(mainView);
+		
+		//the small grid on the screen
+		JPanel secondView = new JPanel(new GridLayout(11, 11));
+		secondView.setBounds(10, 27, 186, 186);
+		secondView.setBorder(new LineBorder(Color.BLACK, 2));
+		add(secondView);
+		
 		fillInView(mainView);
 		fillInView(secondView);
+		
+		turnLabel = new JLabel("Turn");
+		turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		turnLabel.setFont(new Font("Tahoma", Font.PLAIN, 50));
+		turnLabel.setBounds(247, 79, 304, 54);
+		add(turnLabel);
+		
+		lastMoveLabel = new JLabel("Last move");
+		lastMoveLabel.setFont(new Font("Tahoma", Font.PLAIN, 50));
+		lastMoveLabel.setBounds(230, 144, 338, 54);
+		add(lastMoveLabel);
+		
+		announcementsLabel = new JLabel("Announcements");
+		announcementsLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		announcementsLabel.setBounds(312, 34, 256, 34);
+		add(announcementsLabel);
+		
+		whichPlayerLabel = new JLabel("Player");
+		whichPlayerLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		whichPlayerLabel.setBounds(230, 34, 72, 34);
+		add(whichPlayerLabel);
 	}
 	
 	public void fillInView(JPanel view){
@@ -74,6 +115,32 @@ public class Board extends JPanel implements ActionListener{
 				}
 			}
 		}
+	}
+	
+	public void setupNewGame(){
+		ingame = true;
+		
+		p1 = new Grid(); //standard grid
+		p2 = new Grid(); //standard grid
+		
+		turnCounter = 0;
+		
+		turnLabel.setText("Turn: " + turnCounter);
+		
+		setupShips(p1);
+		setupShips(p2);
+		
+		/*while(ingame){
+			play();
+		}*/
+	}
+	
+	public void play(){
+		
+	}
+	
+	public void setupShips(Grid player){
+		
 	}
 	
 	@Override
