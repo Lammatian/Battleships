@@ -30,15 +30,15 @@ public class Battleships extends JFrame{
 	public Battleships(){
 		add(new Board());
 		
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
-		setTitle("Battleships");
-		
 		Dimension minimumSize = new Dimension(610, 650);
 		setMinimumSize(minimumSize);
 		
 		pack();
 		setResizable(false);
+
+		setTitle("Battleships");
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	
 	}
 

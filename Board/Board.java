@@ -22,6 +22,7 @@ public class Board extends JPanel implements ActionListener{
 	private final String COLS = "ABCDEFGHIJ";
 	private boolean ingame;
 	private int turnCounter;
+	private int whichPlayer;
 	private JLabel turnLabel;
 	private JLabel lastMoveLabel;
 	private JLabel announcementsLabel;
@@ -86,6 +87,7 @@ public class Board extends JPanel implements ActionListener{
 		add(lastMoveLabel);
 		
 		announcementsLabel = new JLabel("Announcements");
+		announcementsLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		announcementsLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		announcementsLabel.setBounds(312, 34, 256, 34);
 		add(announcementsLabel);
@@ -124,11 +126,18 @@ public class Board extends JPanel implements ActionListener{
 		p2 = new Grid(); //standard grid
 		
 		turnCounter = 0;
+		whichPlayer = 1;
+		whichPlayerLabel.setText("Player: " + whichPlayer);
 		
-		turnLabel.setText("Turn: " + turnCounter);
+		setTurn();
 		
-		setupShips(p1);
-		setupShips(p2);
+		if(setupShips(p1)){
+			changePlayer();
+		}
+		
+		if(setupShips(p2)){
+			changePlayer();
+		}
 		
 		/*while(ingame){
 			play();
@@ -139,8 +148,23 @@ public class Board extends JPanel implements ActionListener{
 		
 	}
 	
-	public void setupShips(Grid player){
-		
+	public boolean setupShips(Grid player){ //add mode later, for now just standard mode
+		announcementsLabel.setText("Place your ships");
+		return true;
+	}
+	
+	public void changePlayer(){
+		whichPlayer = whichPlayer%2 + 1; //neat :>
+		whichPlayerLabel.setText("Player: " + whichPlayer);
+	}
+	
+	public void nextTurn(){
+		turnCounter++;
+		setTurn();
+	}
+	
+	public void setTurn(){
+		turnLabel.setText("Turn: " + turnCounter);
 	}
 	
 	@Override
