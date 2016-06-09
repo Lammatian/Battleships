@@ -34,7 +34,6 @@ public class Board extends JPanel implements ActionListener{
 	private JPanel secondView;
 	private Grid p1;
 	private Grid p2;
-	private Grid neutral;
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
 	/**
 	 * Create the panel.
@@ -49,7 +48,6 @@ public class Board extends JPanel implements ActionListener{
 		ingame = false;
 		
 		Action newGameAction = new AbstractAction("New game"){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 setupNewGame();
@@ -79,10 +77,8 @@ public class Board extends JPanel implements ActionListener{
 		secondView.setBorder(new LineBorder(Color.BLACK, 2));
 		add(secondView);
 		
-		neutral = new Grid(0);
-		
-		updateView(secondView, neutral); //MISTAKE SOMEWHERE!!
-		updateView(mainView, neutral);
+		updateView(secondView, new Grid(0)); 
+		updateView(mainView, new Grid(0));
 		
 		turnLabel = new JLabel("Turn");
 		turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -135,7 +131,7 @@ public class Board extends JPanel implements ActionListener{
 		}*/
 	}
 	
-	public void updateView(JPanel view, Grid player){
+	public void updateView(JPanel view, Grid grid){
 		view.removeAll();
 		view.add(new JLabel(""));
 		for(int i=0; i<COLS.length(); i++){
@@ -163,7 +159,7 @@ public class Board extends JPanel implements ActionListener{
 					view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
 				}
 				else{
-					view.add(player.getButton(i, j-1));
+					view.add(grid.getButton(i, j-1));
 				}
 			}
 		}
@@ -233,6 +229,10 @@ public class Board extends JPanel implements ActionListener{
             position = 'V';
         }
     }
+	
+	public char getPosition(){
+		return position;
+	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e){
