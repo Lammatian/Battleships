@@ -3,9 +3,9 @@ package Board;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
@@ -34,7 +35,9 @@ public class Board extends JPanel implements ActionListener{
 	private JPanel secondView;
 	private Grid p1;
 	private Grid p2;
-	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
+	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
+	private final Ship[] testShips = {new AircraftCarrier()};
+	
 	/**
 	 * Create the panel.
 	 */
@@ -43,6 +46,9 @@ public class Board extends JPanel implements ActionListener{
 	}
 	
 	public void initBoard(){
+		requestFocusInWindow();
+		getInputMap(WHEN_IN_FOCUSED_WINDOW);
+		keyBinding();
 		setLayout(null);
 		
 		ingame = false;
@@ -109,28 +115,32 @@ public class Board extends JPanel implements ActionListener{
 		p1 = new Grid(); //standard grid, creates buttons
 		p2 = new Grid(); //standard grid, creates buttons
 		
-		updateView(mainView, p1);
-		updateView(secondView, p2);
+		addBinding(mainView);
+		addBinding(secondView);
 		
 		turnCounter = 0;
 		whichPlayer = 1;
-		//changePlayer(); //works, because at first player is '0', so will change it to '1' ACTUALLY DOESN'T WHEN GAME ENDS WITH PLAYER 1
 		
 		setTurn();
 		
-		if(setupShips(p1, mainView, standardShips)){
+		if(setupShips(p1, mainView, testShips)){
 			changePlayer();
 		}
 		
-		if(setupShips(p2, mainView, standardShips)){
+		mainView.requestFocus();
+		
+		/*if(setupShips(p2, mainView, testShips)){
 			changePlayer();
-		}
+		}*/
 		
 		/*while(ingame){
 			play();
 		}*/
 	}
 	
+	/**
+	 * updates the JPanel to show certain grid
+	 */
 	public void updateView(JPanel view, Grid grid){
 		view.removeAll();
 		view.add(new JLabel(""));
@@ -170,10 +180,13 @@ public class Board extends JPanel implements ActionListener{
 	}
 	
 	public boolean setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
+		view.requestFocus(); //sorta works
 		announcementsLabel.setText("Place your ships");
-		/*
-		 * add actionlisteners
-		 */
+		for(int x=0; x<ships.length; x++){
+			player.addAction(ships[x], getPosition());
+			announcementsLabel.setText("Place " + ships[x].toString() + ", size " + ships[x].getLength());
+			updateView(view, player);
+		} //TODO - this loop is FUCKED UP, needs to be done before anything else gets done
 		return true;
 	}
 	
@@ -217,19 +230,6 @@ public class Board extends JPanel implements ActionListener{
 		}
 	}
 	
-	public void keyPressed(KeyEvent e) {
-
-        int key = e.getKeyCode();
-
-        if (key == KeyEvent.VK_H) {
-            position = 'H';
-        }
-
-        if (key == KeyEvent.VK_V) {
-            position = 'V';
-        }
-    }
-	
 	public char getPosition(){
 		return position;
 	}
@@ -237,5 +237,47 @@ public class Board extends JPanel implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e){
 		
+	}
+	
+	public void keyBinding(){
+		Action vertical = new AbstractAction(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				System.out.println("pos changed");
+				position = 'V';
+			}
+		};
+		Action horizontal = new AbstractAction(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				System.out.println("pos changed");
+				position = 'H';
+			}
+		};
+		getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
+		getInputMap().put(KeyStroke.getKeyStroke("H"), "horizontal");
+		getActionMap().put("vertical", vertical);
+		getActionMap().put("horizontal", horizontal);
+	}
+	
+	public void addBinding(JPanel panel){
+		Action vertical = new AbstractAction(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				System.out.println("pos changed");
+				position = 'V';
+			}
+		};
+		Action horizontal = new AbstractAction(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				System.out.println("pos changed");
+				position = 'H';
+			}
+		};
+		panel.getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
+		panel.getInputMap().put(KeyStroke.getKeyStroke("H"), "horizontal");
+		panel.getActionMap().put("vertical", vertical);
+		panel.getActionMap().put("horizontal", horizontal);
 	}
 }
