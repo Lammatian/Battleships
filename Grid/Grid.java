@@ -20,6 +20,7 @@ public class Grid{
 	private JButton[][] buttons;
 	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()}; //TODO - should be in board?
 	private int placedShips;
+	
 	/**
 	 * initializing a 10x10 grid (normal size)
 	 * at first there are no ships so all cells are 'false'
@@ -41,17 +42,17 @@ public class Grid{
 				b.setFocusPainted(false);
 				b.setBackground(Color.WHITE);
 				b.setBorder(new LineBorder(Color.BLACK, 1));
-				b.addActionListener(new ActionListener(){
+				/*b.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
 						placeShip(tempI, tempJ, ships[placedShips], 'H');
 					}
-				});
+				});*/
 				buttons[i][j] = b;
 			}
 		}
 	}
 	
-	/*
+	/**
 	 * constructor for a grid with no actionlisteners
 	 */
 	public Grid(int x){
@@ -107,6 +108,23 @@ public class Grid{
 	}
 	
 	/**
+	 * adds a listener to enable adding a certain ship on the grid
+	 */
+	public void addAction(Ship ship, char position){
+		for(int i=0; i<buttons.length; i++){
+			int tempI = i;
+			for(int j=0; j<buttons[0].length; j++){
+				int tempJ = j;
+				buttons[i][j].addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						placeShip(tempI, tempJ, ship, position);
+					}
+				});
+			}
+		}
+	}
+	
+	/**
 	 * returns all buttons for this grid
 	 * @return
 	 */
@@ -137,11 +155,30 @@ public class Grid{
 			/*
 			 * checking if the ship is too long to go right
 			 */
-			if(coords.length - x < ship.getLength()){ //i.e. ship is too long
+			if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x][y-i] = true;
+					buttons[x][y-i].setBackground(Color.GREEN);
+					buttons[x][y-i].removeActionListener(buttons[x][y-i].getActionListeners()[0]); //hope it works
+				}
+			}
+			else if(coords[0].length - y >= ship.getLength()){ //i.e. placing from right to left
+				for(int i=ship.getLength()-1; i>=0; i--){
+					coords[x][y+i] = true;
+					buttons[x][y+i].setBackground(Color.GREEN);
+					buttons[x][y+i].removeActionListener(buttons[x][y+i].getActionListeners()[0]); //hope it works
+				}
+			}
+		}
+		else if(position == 'V'){
+			/*
+			 * checking if the ship is too long to go down
+			 */
+			if(coords.length - y < ship.getLength()){ //i.e. ship is too long
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x-i][y] = true;
 					buttons[x-i][y].setBackground(Color.GREEN);
-					buttons[x-i][y].removeActionListener(buttons[x+i][y].getActionListeners()[0]); //hope it works
+					buttons[x-i][y].removeActionListener(buttons[x-i][y].getActionListeners()[0]); //hope it works
 				}
 			}
 			else{ //i.e. placing from right to left
@@ -152,28 +189,17 @@ public class Grid{
 				}
 			}
 		}
-		else if(position == 'V'){
-			/*
-			 * checking if the ship is too long to go down
-			 */
-			if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x][y-i] = true;
-					buttons[x][y-i].setBackground(Color.GREEN);
-					buttons[x][y-i].removeActionListener(buttons[x+i][y].getActionListeners()[0]); //hope it works
-				}
-			}
-			else{ //i.e. placing from right to left
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x][y+i] = true;
-					buttons[x][y+i].setBackground(Color.GREEN);
-					buttons[x][y+i].removeActionListener(buttons[x+i][y].getActionListeners()[0]); //hope it works
-				}
-			}
-		}
 		placedShips++;
+		System.out.println("Ship placed");
 	}
 	
+	public int howMany(){
+		return placedShips;
+	}
+	
+	/*
+	 * checks if all ships are placed
+	 */
 	public boolean placedAll(){ //TODO - should be in board?
 		if(placedShips == ships.length){
 			return true;
