@@ -18,6 +18,8 @@ public class Grid{
 	 */
 	private boolean[][] coords;
 	private JButton[][] buttons;
+	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()}; //TODO - should be in board?
+	private int placedShips;
 	/**
 	 * initializing a 10x10 grid (normal size)
 	 * at first there are no ships so all cells are 'false'
@@ -41,7 +43,7 @@ public class Grid{
 				b.setBorder(new LineBorder(Color.BLACK, 1));
 				b.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
-						placeShip(tempI, tempJ, new AircraftCarrier(), 'H');
+						placeShip(tempI, tempJ, ships[placedShips], 'H');
 					}
 				});
 				buttons[i][j] = b;
@@ -62,9 +64,7 @@ public class Grid{
 		}
 		
 		for(int i=0; i<10; i++){
-			int tempI = i;
 			for(int j=0; j<10; j++){
-				int tempJ = j;
 				JButton b = new JButton();
 				b.setFocusPainted(false);
 				b.setBackground(Color.WHITE);
@@ -170,6 +170,16 @@ public class Grid{
 					buttons[x][y+i].removeActionListener(buttons[x+i][y].getActionListeners()[0]); //hope it works
 				}
 			}
+		}
+		placedShips++;
+	}
+	
+	public boolean placedAll(){ //TODO - should be in board?
+		if(placedShips == ships.length){
+			return true;
+		}
+		else{
+			return false;
 		}
 	}
 }
