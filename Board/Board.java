@@ -129,61 +129,62 @@ public class Board extends JPanel implements ActionListener{
 		setupShips(p1, mainView, standardShips);
 		
 		mainView.requestFocus();
-		
-		/*if(setupShips(p2, mainView, testShips)){
-			changePlayer();
-		}*/
-		
-		/*while(ingame){
-			play();
-		}*/
-	}
-	
-	/**
-	 * updates the JPanel to show certain grid
-	 */
-	public void updateView(JPanel view, Grid grid){
-		view.removeAll();
-		view.add(new JLabel(""));
-		for(int i=0; i<COLS.length(); i++){
-			view.add(new JLabel(COLS.substring(i, i+1), SwingConstants.CENTER));
-		}
-		for(int i=0; i<COLS.length(); i++){
-			for(int j=0; j<11; j++){
-				if(j == 0){
-					view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
-				}
-				else{
-					view.add(grid.getButton(i, j-1));
-				}
-			}
-		}
 	}
 	
 	public void play(){
-		
+		nextTurn();
 	}
 	
+	/**
+	 * starts a ship placement operation
+	 * @param player
+	 * @param view
+	 * @param ships
+	 */
 	public void setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
-		view.requestFocus(); //sorta works
+		view.requestFocus();
 		announcementsLabel.setText("Place your ships");
 		JOptionPane.showMessageDialog(null, "Place your ships");
 		updateShipPlacementAnnouncement(player, ships);
 		nextShip(player, view, ships);
 	}
 	
+	/**
+	 * invokes placing next ships
+	 */
 	public void nextShip(Grid player, JPanel view, Ship[] ships){
-		player.addAction(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				nextShip(player, view, ships);
+		if(!player.placedAll()){
+			player.addAction(new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					nextShip(player, view, ships);
+				}
+			});
+			player.addPlacingShip(ships[player.howMany()], getPosition());
+			updateShipPlacementAnnouncement(player, ships);
+			updateView(view, player);
+		}
+		else{
+			if(whichPlayer == 2){
+				changePlayer();
+				updateView(mainView, p1);
+				JOptionPane.showMessageDialog(null, "Ships placed, game starts now");
+				ingame = true;
+				play();
 			}
-		});
-		player.addPlacingShip(ships[player.howMany()], getPosition());
-		updateShipPlacementAnnouncement(player, ships);
-		updateView(view, player);
+			else{
+				changePlayer();
+				JOptionPane.showMessageDialog(null, "Next player");
+				setupShips(p2, mainView, ships);
+			}
+		}
 	}
 	
+	/**
+	 * updates the announcement label to say which ship will be placed now
+	 * @param player
+	 * @param ships
+	 */
 	public void updateShipPlacementAnnouncement(Grid player, Ship[] ships){
 		announcementsLabel.setText("Place " + ships[player.howMany()].toString() + ", size " + ships[player.howMany()].getLength());
 	}
@@ -202,27 +203,22 @@ public class Board extends JPanel implements ActionListener{
 		turnLabel.setText("Turn: " + turnCounter);
 	}
 	
-	public void updateGrid(Grid player, JPanel view){
+	/**
+	 * updates the JPanel to show certain grid
+	 */
+	public void updateView(JPanel view, Grid grid){
+		view.removeAll();
 		view.add(new JLabel(""));
 		for(int i=0; i<COLS.length(); i++){
 			view.add(new JLabel(COLS.substring(i, i+1), SwingConstants.CENTER));
 		}
 		for(int i=0; i<COLS.length(); i++){
-			for(int j=0; j<10; j++){
-				switch(j){
-					case(0):
-						view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
-					default:
-						JButton b = new JButton();
-						b.setFocusPainted(false);
-						if(player.getValue(i, j-1)){ //j-1 because we start with column 1
-							b.setBackground(Color.GREEN);
-						}
-						else{
-							b.setBackground(Color.WHITE);
-						}
-						b.setBorder(new LineBorder(Color.BLACK, 1));
-						view.add(b);
+			for(int j=0; j<11; j++){
+				if(j == 0){
+					view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
+				}
+				else{
+					view.add(grid.getButton(i, j-1));
 				}
 			}
 		}
