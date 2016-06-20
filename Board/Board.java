@@ -11,6 +11,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
@@ -121,11 +122,11 @@ public class Board extends JPanel implements ActionListener{
 		turnCounter = 0;
 		whichPlayer = 1;
 		
+		whichPlayerLabel.setText("Player: " + whichPlayer);
+		
 		setTurn();
 		
-		if(setupShips(p1, mainView, testShips)){
-			changePlayer();
-		}
+		setupShips(p1, mainView, standardShips);
 		
 		mainView.requestFocus();
 		
@@ -149,22 +150,6 @@ public class Board extends JPanel implements ActionListener{
 		}
 		for(int i=0; i<COLS.length(); i++){
 			for(int j=0; j<11; j++){
-				/*switch(j){
-					case(0):
-						view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
-					default:
-						JButton b = new JButton();
-						b.setFocusPainted(false);
-						b.setBackground(Color.WHITE);
-						b.setBorder(new LineBorder(Color.BLACK, 1));
-						b.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								 turnLabel.setText("hey");
-							}
-						});
-						//view.add(b);
-						view.add(player.getButton(i, j-1));
-				}*/
 				if(j == 0){
 					view.add(new JLabel(Integer.toString(i+1), SwingConstants.CENTER));
 				}
@@ -179,15 +164,28 @@ public class Board extends JPanel implements ActionListener{
 		
 	}
 	
-	public boolean setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
+	public void setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
 		view.requestFocus(); //sorta works
 		announcementsLabel.setText("Place your ships");
-		for(int x=0; x<ships.length; x++){
-			player.addAction(ships[x], getPosition());
-			announcementsLabel.setText("Place " + ships[x].toString() + ", size " + ships[x].getLength());
-			updateView(view, player);
-		} //TODO - this loop is FUCKED UP, needs to be done before anything else gets done
-		return true;
+		JOptionPane.showMessageDialog(null, "Place your ships");
+		updateShipPlacementAnnouncement(player, ships);
+		nextShip(player, view, ships);
+	}
+	
+	public void nextShip(Grid player, JPanel view, Ship[] ships){
+		player.addAction(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				nextShip(player, view, ships);
+			}
+		});
+		player.addPlacingShip(ships[player.howMany()], getPosition());
+		updateShipPlacementAnnouncement(player, ships);
+		updateView(view, player);
+	}
+	
+	public void updateShipPlacementAnnouncement(Grid player, Ship[] ships){
+		announcementsLabel.setText("Place " + ships[player.howMany()].toString() + ", size " + ships[player.howMany()].getLength());
 	}
 	
 	public void changePlayer(){
