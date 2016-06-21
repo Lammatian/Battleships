@@ -173,7 +173,6 @@ public class Grid{
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x][y-i] = true;
 					buttons[x][y-i].setBackground(Color.GREEN);
-					//buttons[x][y-i].removeActionListener(buttons[x][y-i].getActionListeners()[0]); //hope it works
 					buttons[x][y-i].removeActionListener(buttons[x][y-i].getActionListeners()[buttons[x][y-i].getActionListeners().length-1]);
 				}
 			}
@@ -181,7 +180,6 @@ public class Grid{
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x][y+i] = true;
 					buttons[x][y+i].setBackground(Color.GREEN);
-					//buttons[x][y+i].removeActionListener(buttons[x][y+i].getActionListeners()[0]); //hope it works
 					buttons[x][y+i].removeActionListener(buttons[x][y+i].getActionListeners()[buttons[x][y+i].getActionListeners().length-1]);
 				}
 			}
@@ -190,19 +188,17 @@ public class Grid{
 			/*
 			 * checking if the ship is too long to go down
 			 */
-			if(coords.length - y < ship.getLength()){ //i.e. ship is too long
+			if(coords.length - x < ship.getLength()){ //i.e. ship is too long
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x-i][y] = true;
 					buttons[x-i][y].setBackground(Color.GREEN);
-					//buttons[x-i][y].removeActionListener(buttons[x-i][y].getActionListeners()[0]); //hope it works
 					buttons[x-i][y].removeActionListener(buttons[x-i][y].getActionListeners()[buttons[x-i][y].getActionListeners().length-1]);
 				}
 			}
-			else{ //i.e. placing from right to left
+			else if(coords[0].length - x >= ship.getLength()){ //i.e. placing from right to left
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x+i][y] = true;
 					buttons[x+i][y].setBackground(Color.GREEN);
-					//buttons[x+i][y].removeActionListener(buttons[x+i][y].getActionListeners()[0]); //hope it works
 					buttons[x+i][y].removeActionListener(buttons[x+i][y].getActionListeners()[buttons[x+i][y].getActionListeners().length-1]);
 				}
 			}
