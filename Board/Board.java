@@ -25,6 +25,7 @@ public class Board extends JPanel implements ActionListener{
 
 	private final String COLS = "ABCDEFGHIJ";
 	private boolean ingame;
+	private boolean placing;
 	private int turnCounter;
 	private int whichPlayer;
 	private char position = 'H';
@@ -34,6 +35,7 @@ public class Board extends JPanel implements ActionListener{
 	private JLabel whichPlayerLabel;
 	private JPanel mainView;
 	private JPanel secondView;
+	private Grid[] grids = {new Grid(0), new Grid(), new Grid()};
 	private Grid p1;
 	private Grid p2;
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
@@ -113,8 +115,8 @@ public class Board extends JPanel implements ActionListener{
 	public void setupNewGame(){
 		ingame = true;
 		
-		p1 = new Grid(); //standard grid, creates buttons
-		p2 = new Grid(); //standard grid, creates buttons
+		grids[1] = new Grid();
+		grids[2] = new Grid();
 		
 		addBinding(mainView);
 		addBinding(secondView);
@@ -126,13 +128,15 @@ public class Board extends JPanel implements ActionListener{
 		
 		setTurn();
 		
-		setupShips(p1, mainView, standardShips);
+		setupShips(grids[whichPlayer], mainView, standardShips);
 		
 		mainView.requestFocus();
 	}
 	
 	public void play(){
 		nextTurn();
+		updateView(mainView, grids[0]);
+		
 	}
 	
 	/**
@@ -142,6 +146,7 @@ public class Board extends JPanel implements ActionListener{
 	 * @param ships
 	 */
 	public void setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
+		placing = true;
 		view.requestFocus();
 		announcementsLabel.setText("Place your ships");
 		JOptionPane.showMessageDialog(null, "Place your ships");
@@ -166,16 +171,16 @@ public class Board extends JPanel implements ActionListener{
 		}
 		else{
 			if(whichPlayer == 2){
-				changePlayer();
-				updateView(mainView, p1);
 				JOptionPane.showMessageDialog(null, "Ships placed, game starts now");
+				changePlayer();
+				placing = false; //ended placing ships
 				ingame = true;
 				play();
 			}
 			else{
+				JOptionPane.showMessageDialog(null, "Second player");
 				changePlayer();
-				JOptionPane.showMessageDialog(null, "Next player");
-				setupShips(p2, mainView, ships);
+				setupShips(grids[whichPlayer], mainView, ships);
 			}
 		}
 	}
@@ -192,6 +197,7 @@ public class Board extends JPanel implements ActionListener{
 	public void changePlayer(){
 		whichPlayer = whichPlayer%2 + 1; //neat :>
 		whichPlayerLabel.setText("Player: " + whichPlayer);
+		updateView(mainView, grids[whichPlayer]);
 	}
 	
 	public void nextTurn(){
@@ -239,6 +245,9 @@ public class Board extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
 				position = 'V';
+				if(placing){
+					nextShip(grids[whichPlayer], mainView, standardShips);
+				}
 			}
 		};
 		Action horizontal = new AbstractAction(){
@@ -246,6 +255,9 @@ public class Board extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
 				position = 'H';
+				if(placing){
+					nextShip(grids[whichPlayer], mainView, standardShips);
+				}
 			}
 		};
 		getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
@@ -260,6 +272,9 @@ public class Board extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
 				position = 'V';
+				if(placing){
+					nextShip(grids[whichPlayer], mainView, standardShips);
+				}
 			}
 		};
 		Action horizontal = new AbstractAction(){
@@ -267,6 +282,9 @@ public class Board extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
 				position = 'H';
+				if(placing){
+					nextShip(grids[whichPlayer], mainView, standardShips);
+				}
 			}
 		};
 		panel.getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
