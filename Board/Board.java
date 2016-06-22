@@ -3,7 +3,6 @@ package Board;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -36,10 +35,7 @@ public class Board extends JPanel implements ActionListener{
 	private JPanel mainView;
 	private JPanel secondView;
 	private Grid[] grids = {new Grid(0), new Grid(), new Grid()};
-	private Grid p1;
-	private Grid p2;
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
-	private final Ship[] testShips = {new AircraftCarrier()};
 	
 	/**
 	 * Create the panel.
@@ -136,6 +132,8 @@ public class Board extends JPanel implements ActionListener{
 	public void play(){
 		nextTurn();
 		updateView(mainView, grids[0]);
+		JOptionPane.showMessageDialog(null, "Player " + whichPlayer);
+		updateView(mainView, grids[whichPlayer]);
 		
 	}
 	
@@ -165,12 +163,13 @@ public class Board extends JPanel implements ActionListener{
 					nextShip(player, view, ships);
 				}
 			});
-			player.addPlacingShip(ships[player.howMany()], getPosition());
+			player.addPlacingShip(ships[player.howManyShipsPlaced()], getPosition());
 			updateShipPlacementAnnouncement(player, ships);
 			updateView(view, player);
 		}
 		else{
 			if(whichPlayer == 2){
+				player.removeActions();
 				JOptionPane.showMessageDialog(null, "Ships placed, game starts now");
 				changePlayer();
 				placing = false; //ended placing ships
@@ -178,6 +177,7 @@ public class Board extends JPanel implements ActionListener{
 				play();
 			}
 			else{
+				player.removeActions();
 				JOptionPane.showMessageDialog(null, "Second player");
 				changePlayer();
 				setupShips(grids[whichPlayer], mainView, ships);
@@ -191,7 +191,7 @@ public class Board extends JPanel implements ActionListener{
 	 * @param ships
 	 */
 	public void updateShipPlacementAnnouncement(Grid player, Ship[] ships){
-		announcementsLabel.setText("Place " + ships[player.howMany()].toString() + ", size " + ships[player.howMany()].getLength());
+		announcementsLabel.setText("Place " + ships[player.howManyShipsPlaced()].toString() + ", size " + ships[player.howManyShipsPlaced()].getLength());
 	}
 	
 	public void changePlayer(){
@@ -228,6 +228,7 @@ public class Board extends JPanel implements ActionListener{
 				}
 			}
 		}
+		view.updateUI();
 	}
 	
 	public char getPosition(){
