@@ -3,8 +3,12 @@ package Grid;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JButton;
+import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
 import Ships.*;
@@ -18,7 +22,8 @@ public class Grid{
 	 */
 	private boolean[][] coords;
 	private JButton[][] buttons;
-	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()}; //TODO - should be in board?
+	private MouseAdapter[][] hover;
+	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
 	private int placedShips;
 	
 	/**
@@ -29,9 +34,11 @@ public class Grid{
 		
 		coords = new boolean[10][];
 		buttons = new JButton[10][];
+		hover = new MouseAdapter[10][];
 		for(int i=0; i<10; i++){
 			coords[i] = new boolean[10];
 			buttons[i] = new JButton[10];
+			hover[i] = new MouseAdapter[10];
 		}
 		
 		for(int i=0; i<10; i++){
@@ -42,14 +49,12 @@ public class Grid{
 				b.setFocusPainted(false);
 				b.setBackground(Color.WHITE);
 				b.setBorder(new LineBorder(Color.BLACK, 1));
-				/*b.addActionListener(new ActionListener(){
-					public void actionPerformed(ActionEvent e){
-						placeShip(tempI, tempJ, ships[placedShips], 'H');
-					}
-				});*/
 				buttons[i][j] = b;
+				hover[i][j] = mouseEvent(i, j, new AircraftCarrier(), 'H');
 			}
 		}
+		
+		addHover();
 	}
 	
 	/**
@@ -122,6 +127,8 @@ public class Grid{
 						placeShip(tempI, tempJ, ship, position);
 					}
 				});
+				updateGrid();
+				updateHover(ship, position);
 			}
 		}
 	}
@@ -135,6 +142,38 @@ public class Grid{
 			for(int j=0; j<buttons[0].length; j++){
 				buttons[i][j].addActionListener(a);
 			}
+		}
+	}
+	
+	/**
+	 * removes all action listeners
+	 */
+	public void removeActions(){
+		for(int i=0; i<buttons.length; i++){
+			for(int j=0; j<buttons[0].length; j++){
+				for(ActionListener a : buttons[i][j].getActionListeners()){
+					buttons[i][j].removeActionListener(a);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * removes action listeners
+	 */
+	public void removeActionListeners(JButton b){
+		for(ActionListener a : b.getActionListeners()){
+			b.removeActionListener(a);
+		}
+	}
+	
+	/**
+	 * removes mouse listeners
+	 * @param b
+	 */
+	public void removeMouseListeners(JButton b){
+		for(MouseListener a : b.getMouseListeners()){
+			b.removeMouseListener(a);
 		}
 	}
 	
@@ -157,6 +196,124 @@ public class Grid{
 	}
 	
 	/**
+	 * creates mouse adapter for the hover mouse listener
+	 * @param i
+	 * @param j
+	 * @param ship
+	 * @return
+	 */
+	public MouseAdapter mouseEvent(int i, int j, Ship ship, char position){
+		MouseAdapter ma = new MouseAdapter(){
+			public void mouseEntered(MouseEvent evt){
+				if(position == 'H'){
+					/*
+					 * checking if the ship is too long to go right
+					 */
+					if(coords[0].length - j < ship.getLength()){ //i.e. ship is too long
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i][j-x]){
+								buttons[i][j-x].setBackground(Color.GREEN);
+							}
+						}
+					}
+					else if(coords[0].length - j >= ship.getLength()){ //i.e. placing from right to left
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i][j+x]){
+								buttons[i][j+x].setBackground(Color.GREEN);
+							}
+						}
+					}
+				}
+				else if(position == 'V'){
+					/*
+					 * checking if the ship is too long to go down
+					 */
+					if(coords.length - i < ship.getLength()){ //i.e. ship is too long
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i-x][j]){
+								buttons[i-x][j].setBackground(Color.GREEN);
+							}
+						}
+					}
+					else if(coords[0].length - i >= ship.getLength()){ //i.e. placing from right to left
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i+x][j]){
+								buttons[i+x][j].setBackground(Color.GREEN);
+							}
+						}
+					}
+				}
+			}
+			public void mouseExited(MouseEvent evt){
+				if(position == 'H'){
+					/*
+					 * checking if the ship is too long to go right
+					 */
+					if(coords[0].length - j < ship.getLength()){ //i.e. ship is too long
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i][j-x]){
+								buttons[i][j-x].setBackground(Color.WHITE);
+							}
+						}
+					}
+					else if(coords[0].length - j >= ship.getLength()){ //i.e. placing from right to left
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i][j+x]){
+								buttons[i][j+x].setBackground(Color.WHITE);
+							}
+						}
+					}
+				}
+				else if(position == 'V'){
+					/*
+					 * checking if the ship is too long to go down
+					 */
+					if(coords.length - i < ship.getLength()){ //i.e. ship is too long
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i-x][j]){
+								buttons[i-x][j].setBackground(Color.WHITE);
+							}
+						}
+					}
+					else if(coords[0].length - i >= ship.getLength()){ //i.e. placing from right to left
+						for(int x=ship.getLength()-1; x>=0; x--){
+							if(!coords[i+x][j]){
+								buttons[i+x][j].setBackground(Color.WHITE);
+							}
+						}
+					}
+				}
+			}
+		};
+		
+		return ma;
+	}
+	
+	/**
+	 * updates mouse listener for the hover action
+	 */
+	public void updateHover(Ship ship, char position){
+		for(int i=0; i<hover.length; i++){
+			for(int j=0; j<hover[0].length; j++){
+				buttons[i][j].removeMouseListener(hover[i][j]);
+				hover[i][j] = mouseEvent(i, j, ship, position);
+				buttons[i][j].addMouseListener(hover[i][j]);
+			}
+		}
+	}
+	
+	/**
+	 * adds hover to the buttons
+	 */
+	public void addHover(){
+		for(int i=0; i<buttons.length; i++){
+			for(int j=0; j<buttons[0].length; j++){
+				buttons[i][j].addMouseListener(hover[i][j]);
+			}
+		}
+	}
+	
+	/**
 	 * ship 'starts' at (x, y) and goes either down (placement = 'V' (i.e. vertical)) or to the right (placement = 'H' (i.e. horizontal))
 	 * 
 	 * if (x,y) is too low for the ship to go down/right, then it will go up/left
@@ -173,14 +330,14 @@ public class Grid{
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x][y-i] = true;
 					buttons[x][y-i].setBackground(Color.GREEN);
-					buttons[x][y-i].removeActionListener(buttons[x][y-i].getActionListeners()[buttons[x][y-i].getActionListeners().length-1]);
+					removeMouseListeners(buttons[x][y-i]);
 				}
 			}
 			else if(coords[0].length - y >= ship.getLength()){ //i.e. placing from right to left
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x][y+i] = true;
 					buttons[x][y+i].setBackground(Color.GREEN);
-					buttons[x][y+i].removeActionListener(buttons[x][y+i].getActionListeners()[buttons[x][y+i].getActionListeners().length-1]);
+					removeMouseListeners(buttons[x][y+i]);
 				}
 			}
 		}
@@ -192,14 +349,14 @@ public class Grid{
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x-i][y] = true;
 					buttons[x-i][y].setBackground(Color.GREEN);
-					buttons[x-i][y].removeActionListener(buttons[x-i][y].getActionListeners()[buttons[x-i][y].getActionListeners().length-1]);
+					removeMouseListeners(buttons[x-i][y]);
 				}
 			}
 			else if(coords[0].length - x >= ship.getLength()){ //i.e. placing from right to left
 				for(int i=ship.getLength()-1; i>=0; i--){
 					coords[x+i][y] = true;
 					buttons[x+i][y].setBackground(Color.GREEN);
-					buttons[x+i][y].removeActionListener(buttons[x+i][y].getActionListeners()[buttons[x+i][y].getActionListeners().length-1]);
+					removeMouseListeners(buttons[x+i][y]);
 				}
 			}
 		}
@@ -208,10 +365,26 @@ public class Grid{
 	}
 	
 	/**
+	 * updated the grid to show actual state
+	 */
+	public void updateGrid(){
+		for(int i=0; i<coords.length; i++){
+			for(int j=0; j<coords[0].length; j++){
+				if(coords[i][j]){
+					buttons[i][j].setBackground(Color.GREEN);
+				}
+				else{
+					buttons[i][j].setBackground(Color.WHITE);
+				}
+			}
+		}
+	}
+	
+	/**
 	 * returns how many ships are placed
 	 * @return
 	 */
-	public int howMany(){
+	public int howManyShipsPlaced(){
 		return placedShips;
 	}
 	
