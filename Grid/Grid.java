@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.JButton;
-import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
 import Ships.*;
@@ -42,9 +41,7 @@ public class Grid{
 		}
 		
 		for(int i=0; i<10; i++){
-			int tempI = i;
 			for(int j=0; j<10; j++){
-				int tempJ = j;
 				JButton b = new JButton();
 				b.setFocusPainted(false);
 				b.setBackground(Color.WHITE);
@@ -202,24 +199,41 @@ public class Grid{
 	 * @param ship
 	 * @return
 	 */
-	public MouseAdapter mouseEvent(int i, int j, Ship ship, char position){
+	public MouseAdapter mouseEvent(int x, int y, Ship ship, char position){
 		MouseAdapter ma = new MouseAdapter(){
 			public void mouseEntered(MouseEvent evt){
+				boolean canPlace = true;
 				if(position == 'H'){
 					/*
 					 * checking if the ship is too long to go right
 					 */
-					if(coords[0].length - j < ship.getLength()){ //i.e. ship is too long
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i][j-x]){
-								buttons[i][j-x].setBackground(Color.GREEN);
+					if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
+						for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+							if(coords[x][y-i]){ //if a ship is placed to the left
+								canPlace = false;
+								break;
+							}
+						}
+						if(canPlace){
+							for(int i=ship.getLength()-1; i>=0; i--){
+								if(!coords[x][y-i]){
+									buttons[x][y-i].setBackground(Color.GREEN);
+								}
 							}
 						}
 					}
-					else if(coords[0].length - j >= ship.getLength()){ //i.e. placing from right to left
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i][j+x]){
-								buttons[i][j+x].setBackground(Color.GREEN);
+					else if(coords[0].length - y >= ship.getLength()){ //i.e. placing from right to left
+						for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+							if(coords[x][y+i]){ //if a ship is placed to the left
+								canPlace = false;
+								break;
+							}
+						}
+						if(canPlace){
+							for(int i=ship.getLength()-1; i>=0; i--){
+								if(!coords[x][y+i]){
+									buttons[x][y+i].setBackground(Color.GREEN);
+								}
 							}
 						}
 					}
@@ -228,17 +242,33 @@ public class Grid{
 					/*
 					 * checking if the ship is too long to go down
 					 */
-					if(coords.length - i < ship.getLength()){ //i.e. ship is too long
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i-x][j]){
-								buttons[i-x][j].setBackground(Color.GREEN);
+					if(coords.length - x < ship.getLength()){ //i.e. ship is too long
+						for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+							if(coords[x-i][y]){ //if a ship is placed to the left
+								canPlace = false;
+								break;
+							}
+						}
+						if(canPlace){
+							for(int i=ship.getLength()-1; i>=0; i--){
+								if(!coords[x-i][y]){
+									buttons[x-i][y].setBackground(Color.GREEN);
+								}
 							}
 						}
 					}
-					else if(coords[0].length - i >= ship.getLength()){ //i.e. placing from right to left
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i+x][j]){
-								buttons[i+x][j].setBackground(Color.GREEN);
+					else if(coords[0].length - x >= ship.getLength()){ //i.e. placing from right to left
+						for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+							if(coords[x+i][y]){ //if a ship is placed to the left
+								canPlace = false;
+								break;
+							}
+						}
+						if(canPlace){
+							for(int i=ship.getLength()-1; i>=0; i--){
+								if(!coords[x+i][y]){
+									buttons[x+i][y].setBackground(Color.GREEN);
+								}
 							}
 						}
 					}
@@ -249,17 +279,17 @@ public class Grid{
 					/*
 					 * checking if the ship is too long to go right
 					 */
-					if(coords[0].length - j < ship.getLength()){ //i.e. ship is too long
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i][j-x]){
-								buttons[i][j-x].setBackground(Color.WHITE);
+					if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
+						for(int i=ship.getLength()-1; i>=0; i--){
+							if(!coords[x][y-i]){
+								buttons[x][y-i].setBackground(Color.WHITE);
 							}
 						}
 					}
-					else if(coords[0].length - j >= ship.getLength()){ //i.e. placing from right to left
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i][j+x]){
-								buttons[i][j+x].setBackground(Color.WHITE);
+					else if(coords[0].length - y >= ship.getLength()){ //i.e. placing from right to left
+						for(int i=ship.getLength()-1; i>=0; i--){
+							if(!coords[x][y+i]){
+								buttons[x][y+i].setBackground(Color.WHITE);
 							}
 						}
 					}
@@ -268,17 +298,17 @@ public class Grid{
 					/*
 					 * checking if the ship is too long to go down
 					 */
-					if(coords.length - i < ship.getLength()){ //i.e. ship is too long
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i-x][j]){
-								buttons[i-x][j].setBackground(Color.WHITE);
+					if(coords.length - x < ship.getLength()){ //i.e. ship is too long
+						for(int i=ship.getLength()-1; i>=0; i--){
+							if(!coords[x-i][y]){
+								buttons[x-i][y].setBackground(Color.WHITE);
 							}
 						}
 					}
-					else if(coords[0].length - i >= ship.getLength()){ //i.e. placing from right to left
-						for(int x=ship.getLength()-1; x>=0; x--){
-							if(!coords[i+x][j]){
-								buttons[i+x][j].setBackground(Color.WHITE);
+					else if(coords[0].length - x >= ship.getLength()){ //i.e. placing from right to left
+						for(int i=ship.getLength()-1; i>=0; i--){
+							if(!coords[x+i][y]){
+								buttons[x+i][y].setBackground(Color.WHITE);
 							}
 						}
 					}
@@ -322,22 +352,43 @@ public class Grid{
 	 */
 	public void placeShip(int x, int y, Ship ship, char position){
 		
+		boolean canPlace = true;
+		boolean placed = false;
+		
 		if(position == 'H'){
 			/*
 			 * checking if the ship is too long to go right
 			 */
 			if(coords[0].length - y < ship.getLength()){ //i.e. ship is too long
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x][y-i] = true;
-					buttons[x][y-i].setBackground(Color.GREEN);
-					removeMouseListeners(buttons[x][y-i]);
+				for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+					if(coords[x][y-i]){ //if a ship is placed to the left
+						canPlace = false;
+						break;
+					}
+				}
+				if(canPlace){
+					for(int i=ship.getLength()-1; i>=0; i--){
+						coords[x][y-i] = true;
+						buttons[x][y-i].setBackground(Color.GREEN);
+						removeMouseListeners(buttons[x][y-i]);
+					}
+					placed = true;
 				}
 			}
 			else if(coords[0].length - y >= ship.getLength()){ //i.e. placing from right to left
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x][y+i] = true;
-					buttons[x][y+i].setBackground(Color.GREEN);
-					removeMouseListeners(buttons[x][y+i]);
+				for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+					if(coords[x][y+i]){ //if a ship is placed to the left
+						canPlace = false;
+						break;
+					}
+				}
+				if(canPlace){
+					for(int i=ship.getLength()-1; i>=0; i--){
+						coords[x][y+i] = true;
+						buttons[x][y+i].setBackground(Color.GREEN);
+						removeMouseListeners(buttons[x][y+i]);
+					}
+					placed = true;
 				}
 			}
 		}
@@ -346,22 +397,45 @@ public class Grid{
 			 * checking if the ship is too long to go down
 			 */
 			if(coords.length - x < ship.getLength()){ //i.e. ship is too long
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x-i][y] = true;
-					buttons[x-i][y].setBackground(Color.GREEN);
-					removeMouseListeners(buttons[x-i][y]);
+				for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+					if(coords[x-i][y]){ //if a ship is placed to the left
+						canPlace = false;
+						break;
+					}
+				}
+				if(canPlace){
+					for(int i=ship.getLength()-1; i>=0; i--){
+						coords[x-i][y] = true;
+						buttons[x-i][y].setBackground(Color.GREEN);
+						removeMouseListeners(buttons[x-i][y]);
+					}
+					placed = true;
 				}
 			}
 			else if(coords[0].length - x >= ship.getLength()){ //i.e. placing from right to left
-				for(int i=ship.getLength()-1; i>=0; i--){
-					coords[x+i][y] = true;
-					buttons[x+i][y].setBackground(Color.GREEN);
-					removeMouseListeners(buttons[x+i][y]);
+				for(int i=0; i<ship.getLength(); i++){ //checking if any of the ships 'blocks the way'
+					if(coords[x+i][y]){ //if a ship is placed to the left
+						canPlace = false;
+						break;
+					}
+				}
+				if(canPlace){
+					for(int i=ship.getLength()-1; i>=0; i--){
+						coords[x+i][y] = true;
+						buttons[x+i][y].setBackground(Color.GREEN);
+						removeMouseListeners(buttons[x+i][y]);
+					}
+					placed = true;
 				}
 			}
 		}
-		placedShips++;
-		System.out.println("Ship placed");
+		if(placed){
+			placedShips++;
+			System.out.println("Ship placed");
+		}
+		else{
+			System.out.println("Couldn't place the ship");
+		}
 	}
 	
 	/**
