@@ -23,8 +23,8 @@ import Ships.*;
 public class Board extends JPanel implements ActionListener{
 
 	private final String COLS = "ABCDEFGHIJ";
-	private boolean ingame;
 	private boolean placing;
+	private boolean ingame;
 	private int turnCounter;
 	private int whichPlayer;
 	private char position = 'H';
@@ -34,7 +34,8 @@ public class Board extends JPanel implements ActionListener{
 	private JLabel whichPlayerLabel;
 	private JPanel mainView;
 	private JPanel secondView;
-	private Grid[] grids = {new Grid(0), new Grid(), new Grid()};
+	private Grid[] grids = {new Grid(0), new Grid(), new Grid()}; //grids: neutral, for player 1 and for player 2
+	private Grid[] enemyView = {new Grid(0), new Grid(), new Grid()}; //grids how enemy sees them
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
 	
 	/**
@@ -45,15 +46,15 @@ public class Board extends JPanel implements ActionListener{
 	}
 	
 	public void initBoard(){
+		
 		requestFocusInWindow();
 		getInputMap(WHEN_IN_FOCUSED_WINDOW);
 		keyBinding();
 		setLayout(null);
 		
-		ingame = false;
-		
 		Action newGameAction = new AbstractAction("New game"){
-            @Override
+
+			@Override
             public void actionPerformed(ActionEvent e) {
                 setupNewGame();
             }
@@ -109,7 +110,6 @@ public class Board extends JPanel implements ActionListener{
 	}
 	
 	public void setupNewGame(){
-		ingame = true;
 		
 		grids[1] = new Grid();
 		grids[2] = new Grid();
@@ -130,10 +130,12 @@ public class Board extends JPanel implements ActionListener{
 	}
 	
 	public void play(){
-		nextTurn();
-		updateView(mainView, grids[0]);
-		JOptionPane.showMessageDialog(null, "Player " + whichPlayer);
-		updateView(mainView, grids[whichPlayer]);
+		ingame = true;
+		announcementsLabel.setText("");
+		
+		setupAttack();
+		
+		changePlayer();
 		
 	}
 	
@@ -171,9 +173,8 @@ public class Board extends JPanel implements ActionListener{
 			if(whichPlayer == 2){
 				player.removeActions();
 				JOptionPane.showMessageDialog(null, "Ships placed, game starts now");
-				changePlayer();
+				//changePlayer();
 				placing = false; //ended placing ships
-				ingame = true;
 				play();
 			}
 			else{
@@ -194,10 +195,55 @@ public class Board extends JPanel implements ActionListener{
 		announcementsLabel.setText("Place " + ships[player.howManyShipsPlaced()].toString() + ", size " + ships[player.howManyShipsPlaced()].getLength());
 	}
 	
+	/**
+	 * initializes and creates enemy views for the game
+	 */
+	public void setupAttack(){
+		enemyView[1] = new Grid(grids[2]); //how Player 1 sees Player 2
+		//this works strange
+		//you have to add first the action
+		//which you want the button to perform last
+		enemyView[1].addAction(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				changePlayer();
+			}
+		});
+		enemyView[1].addAttack();
+		
+		enemyView[2] = new Grid(grids[1]); //how Player 2 sees Player 1
+		enemyView[2].addAction(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				changePlayer();
+			}
+		});
+		enemyView[2].addAttack();
+	}
+	
+	public static void hit(){
+		JOptionPane.showMessageDialog(null, "Hit!");
+	}
+	
+	public static void noHit(){
+		JOptionPane.showMessageDialog(null, "No hit");
+	}
+	
 	public void changePlayer(){
+		if(ingame && whichPlayer == 2){
+			nextTurn();
+		}
 		whichPlayer = whichPlayer%2 + 1; //neat :>
-		whichPlayerLabel.setText("Player: " + whichPlayer);
-		updateView(mainView, grids[whichPlayer]);
+		whichPlayerLabel.setText("Player " + whichPlayer);
+		if(placing){
+			updateView(mainView, grids[whichPlayer]);
+		}
+		else if(ingame){
+			JOptionPane.showMessageDialog(null, "Player " + whichPlayer);
+			announcementsLabel.setText("Choose a place to attack in");
+			updateView(mainView, enemyView[whichPlayer]);
+			updateView(secondView, grids[whichPlayer]);
+		}
 	}
 	
 	public void nextTurn(){
