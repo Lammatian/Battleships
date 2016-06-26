@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.border.LineBorder;
 
 import Ships.*;
+import Board.*;
 
 public class Grid{
 	
@@ -89,6 +90,37 @@ public class Grid{
 		for(int i=0; i<rows; i++){
 			coords[i] = new boolean[columns];
 		}
+	}
+	
+	/**
+	 * 'enemy' grid, with ones ships that can't be seen
+	 */
+	public Grid(Grid grid){
+		
+		coords = new boolean[10][];
+		buttons = new JButton[10][];
+		hover = new MouseAdapter[10][];
+		for(int i=0; i<10; i++){
+			coords[i] = new boolean[10];
+			for(int j=0; j<10; j++){
+				coords[i][j] = grid.getValue(i, j);
+			}
+			buttons[i] = new JButton[10];
+			hover[i] = new MouseAdapter[10];
+		}
+		
+		for(int i=0; i<10; i++){
+			for(int j=0; j<10; j++){
+				JButton b = new JButton();
+				b.setFocusPainted(false);
+				b.setBackground(Color.WHITE);
+				b.setBorder(new LineBorder(Color.BLACK, 1));
+				buttons[i][j] = b;
+				hover[i][j] = hover(i,j);
+			}
+		}
+		
+		addHover();
 	}
 	
 	/**
@@ -320,6 +352,25 @@ public class Grid{
 	}
 	
 	/**
+	 * hover on every button
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public MouseAdapter hover(int x, int y){
+		MouseAdapter ma = new MouseAdapter(){
+			public void mouseEntered(MouseEvent evt){
+				buttons[x][y].setBackground(new Color(0, 191, 255));
+			}
+			public void mouseExited(MouseEvent evt){
+				buttons[x][y].setBackground(Color.WHITE);
+			}
+		};
+		
+		return ma;
+	}
+	
+	/**
 	 * updates mouse listener for the hover action
 	 */
 	public void updateHover(Ship ship, char position){
@@ -339,6 +390,36 @@ public class Grid{
 		for(int i=0; i<buttons.length; i++){
 			for(int j=0; j<buttons[0].length; j++){
 				buttons[i][j].addMouseListener(hover[i][j]);
+			}
+		}
+	}
+	
+	/**
+	 * adds action listeners to enable attacking the enemy
+	 */
+	public void addAttack(){
+		for(int i=0; i<buttons.length; i++){
+			int tempI = i;
+			for(int j=0; j<buttons[0].length; j++){
+				int tempJ = j;
+				ActionListener attack = new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if(coords[tempI][tempJ]){ //there is a ship
+							buttons[tempI][tempJ].setBackground(Color.RED);
+							Board.hit();
+							removeActionListeners(buttons[tempI][tempJ]);
+							removeMouseListeners(buttons[tempI][tempJ]);
+						}
+						else{
+							buttons[tempI][tempJ].setBackground(Color.GRAY);
+							Board.noHit();
+							removeActionListeners(buttons[tempI][tempJ]);
+							removeMouseListeners(buttons[tempI][tempJ]);
+						}
+					}
+				};
+				buttons[i][j].addActionListener(attack);
 			}
 		}
 	}
