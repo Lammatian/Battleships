@@ -20,10 +20,14 @@ public class Grid{
 	 * true means that there is a ship in a particular cell
 	 * false means that there is no ship in a particular cell
 	 */
+	private String positions = "ABCDEFGHIJ";
 	private boolean[][] coords;
 	private JButton[][] buttons;
 	private MouseAdapter[][] hover;
+	private String[][] pos;
+	private String lastPosition;
 	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
+	private Ship[] testShips = {new PatrolBoat()};
 	private int placedShips;
 	
 	/**
@@ -100,6 +104,7 @@ public class Grid{
 		coords = new boolean[10][];
 		buttons = new JButton[10][];
 		hover = new MouseAdapter[10][];
+		pos = new String[10][];
 		for(int i=0; i<10; i++){
 			coords[i] = new boolean[10];
 			for(int j=0; j<10; j++){
@@ -107,6 +112,7 @@ public class Grid{
 			}
 			buttons[i] = new JButton[10];
 			hover[i] = new MouseAdapter[10];
+			pos[i] = new String[10];
 		}
 		
 		for(int i=0; i<10; i++){
@@ -117,10 +123,12 @@ public class Grid{
 				b.setBorder(new LineBorder(Color.BLACK, 1));
 				buttons[i][j] = b;
 				hover[i][j] = hover(i,j);
+				pos[i][j] = positions.charAt(j) + "" + (i+1);
 			}
 		}
 		
 		addHover();
+		addLastMoveListener();
 	}
 	
 	/**
@@ -139,6 +147,14 @@ public class Grid{
 	 */
 	public boolean getValue(int row, int column){
 		return coords[row][column];
+	}
+	
+	public String getPosition(int row, int column){
+		return pos[row][column];
+	}
+	
+	public String getLastPosition(){
+		return lastPosition;
 	}
 	
 	/**
@@ -371,14 +387,31 @@ public class Grid{
 	}
 	
 	/**
-	 * updates mouse listener for the hover action
+	 * updates mouse listener for the hover action (works only for the 'enemy view' i.e Grid(Grid grid) constructed grids)
 	 */
 	public void updateHover(Ship ship, char position){
 		for(int i=0; i<hover.length; i++){
+			int tempI = i;
 			for(int j=0; j<hover[0].length; j++){
+				int tempJ = j;
 				buttons[i][j].removeMouseListener(hover[i][j]);
 				hover[i][j] = mouseEvent(i, j, ship, position);
 				buttons[i][j].addMouseListener(hover[i][j]);
+			}
+		}
+	}
+	
+	public void addLastMoveListener(){
+		for(int i=0; i<hover.length; i++){
+			int tempI = i;
+			for(int j=0; j<hover[0].length; j++){
+				int tempJ = j;
+				buttons[i][j].addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						lastPosition = getPosition(tempI, tempJ);
+					}
+				});
 			}
 		}
 	}
@@ -407,6 +440,7 @@ public class Grid{
 					public void actionPerformed(ActionEvent e) {
 						if(coords[tempI][tempJ]){ //there is a ship
 							buttons[tempI][tempJ].setBackground(Color.RED);
+							coords[tempI][tempJ] = false; //to be able to check if all ships are destroyed
 							Board.hit();
 							removeActionListeners(buttons[tempI][tempJ]);
 							removeMouseListeners(buttons[tempI][tempJ]);
@@ -547,11 +581,26 @@ public class Grid{
 	 * checks if all ships are placed
 	 */
 	public boolean placedAll(){ //TODO - should be in board?
-		if(placedShips == ships.length){
+		//if(placedShips == ships.length){
+		if(placedShips == testShips.length){
 			return true;
 		}
 		else{
 			return false;
 		}
+	}
+	
+	/**
+	 * checks if all ships got destroyed
+	 */
+	public boolean destroyedAll(){
+		for(int i=0; i<coords.length; i++){
+			for(int j=0; j<coords[0].length; j++){
+				if(coords[i][j]){
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
