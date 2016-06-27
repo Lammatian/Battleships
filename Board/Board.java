@@ -20,6 +20,7 @@ import javax.swing.border.LineBorder;
 import Grid.Grid;
 import Ships.*;
 
+
 public class Board extends JPanel implements ActionListener{
 
 	private final String COLS = "ABCDEFGHIJ";
@@ -37,6 +38,9 @@ public class Board extends JPanel implements ActionListener{
 	private Grid[] grids = {new Grid(0), new Grid(), new Grid()}; //grids: neutral, for player 1 and for player 2
 	private Grid[] enemyView = {new Grid(0), new Grid(), new Grid()}; //grids how enemy sees them
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
+	private final Ship[] testShips = {new PatrolBoat()};
+	private Ship[] usedShips;
+	private String lastMove;
 	
 	/**
 	 * Create the panel.
@@ -49,7 +53,7 @@ public class Board extends JPanel implements ActionListener{
 		
 		requestFocusInWindow();
 		getInputMap(WHEN_IN_FOCUSED_WINDOW);
-		keyBinding();
+		//keyBinding();
 		setLayout(null);
 		
 		Action newGameAction = new AbstractAction("New game"){
@@ -57,6 +61,7 @@ public class Board extends JPanel implements ActionListener{
 			@Override
             public void actionPerformed(ActionEvent e) {
                 setupNewGame();
+                usedShips = testShips;
             }
 		};
 		
@@ -88,12 +93,12 @@ public class Board extends JPanel implements ActionListener{
 		
 		turnLabel = new JLabel("Turn");
 		turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		turnLabel.setFont(new Font("Tahoma", Font.PLAIN, 50));
+		turnLabel.setFont(new Font("Tahoma", Font.PLAIN, 48));
 		turnLabel.setBounds(247, 79, 304, 54);
 		add(turnLabel);
 		
 		lastMoveLabel = new JLabel("Last move");
-		lastMoveLabel.setFont(new Font("Tahoma", Font.PLAIN, 50));
+		lastMoveLabel.setFont(new Font("Tahoma", Font.PLAIN, 48));
 		lastMoveLabel.setBounds(230, 144, 338, 54);
 		add(lastMoveLabel);
 		
@@ -109,7 +114,64 @@ public class Board extends JPanel implements ActionListener{
 		add(whichPlayerLabel);
 	}
 	
+	public void nextTurn(){
+		turnCounter++;
+		setTurn();
+	}
+	
+	public void setTurn(){
+		turnLabel.setText("Turn: " + turnCounter);
+	}
+	
+	public void setPlayer(){
+		whichPlayerLabel.setText("Player " + whichPlayer);
+	}
+	
+	public void setAnnouncement(String message){
+		announcementsLabel.setText(message);
+	}
+	
+	public void updateLastMove(){
+		lastMove = enemyView[whichPlayer].getLastPosition();
+		setLastMove();
+	}
+	
+	public void setLastMove(){
+		lastMoveLabel.setText("Last move: " + lastMove);
+	}
+	
+	public static void showInformation(String message){
+		JOptionPane.showMessageDialog(null, message);
+	}
+	
+	public void endGame(){
+		showInformation("Player " + whichPlayer + " wins!");
+		ingame = false;
+		startView();
+	}
+	
+	public char getPosition(){
+		return position;
+	}
+	
+	public void startView(){
+		grids[1] = new Grid();
+		grids[2] = new Grid();
+		
+		turnCounter = 0;
+		setTurn();
+		whichPlayer = 1;
+		setPlayer();
+		
+		updateView(mainView, new Grid(0));
+		updateView(secondView, new Grid(0));
+		
+		setAnnouncement("Press \"New game\" to start");
+	}
+	
 	public void setupNewGame(){
+		
+		startView();
 		
 		grids[1] = new Grid();
 		grids[2] = new Grid();
@@ -120,23 +182,22 @@ public class Board extends JPanel implements ActionListener{
 		turnCounter = 0;
 		whichPlayer = 1;
 		
-		whichPlayerLabel.setText("Player: " + whichPlayer);
-		
+		setPlayer();
 		setTurn();
 		
-		setupShips(grids[whichPlayer], mainView, standardShips);
+		//setupShips(grids[whichPlayer], mainView, standardShips);
+		setupShips(grids[whichPlayer], mainView, testShips);
 		
 		mainView.requestFocus();
 	}
 	
 	public void play(){
 		ingame = true;
-		announcementsLabel.setText("");
+		setAnnouncement("");
 		
 		setupAttack();
 		
 		changePlayer();
-		
 	}
 	
 	/**
@@ -148,8 +209,8 @@ public class Board extends JPanel implements ActionListener{
 	public void setupShips(Grid player, JPanel view, Ship[] ships){ //add mode later, for now just standard mode
 		placing = true;
 		view.requestFocus();
-		announcementsLabel.setText("Place your ships");
-		JOptionPane.showMessageDialog(null, "Place your ships");
+		setAnnouncement("Place your ships");
+		showInformation("Place your ships");
 		updateShipPlacementAnnouncement(player, ships);
 		nextShip(player, view, ships);
 	}
@@ -172,14 +233,13 @@ public class Board extends JPanel implements ActionListener{
 		else{
 			if(whichPlayer == 2){
 				player.removeActions();
-				JOptionPane.showMessageDialog(null, "Ships placed, game starts now");
-				//changePlayer();
+				showInformation("Ships placed, game starts now");
 				placing = false; //ended placing ships
 				play();
 			}
 			else{
 				player.removeActions();
-				JOptionPane.showMessageDialog(null, "Second player");
+				showInformation("Second player");
 				changePlayer();
 				setupShips(grids[whichPlayer], mainView, ships);
 			}
@@ -192,7 +252,7 @@ public class Board extends JPanel implements ActionListener{
 	 * @param ships
 	 */
 	public void updateShipPlacementAnnouncement(Grid player, Ship[] ships){
-		announcementsLabel.setText("Place " + ships[player.howManyShipsPlaced()].toString() + ", size " + ships[player.howManyShipsPlaced()].getLength());
+		setAnnouncement("Place " + ships[player.howManyShipsPlaced()].toString() + ", size " + ships[player.howManyShipsPlaced()].getLength());
 	}
 	
 	/**
@@ -209,6 +269,12 @@ public class Board extends JPanel implements ActionListener{
 				changePlayer();
 			}
 		});
+		enemyView[1].addAction(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				updateLastMove();
+			}
+		});
 		enemyView[1].addAttack();
 		
 		enemyView[2] = new Grid(grids[1]); //how Player 2 sees Player 1
@@ -218,41 +284,44 @@ public class Board extends JPanel implements ActionListener{
 				changePlayer();
 			}
 		});
+		enemyView[2].addAction(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				updateLastMove();
+			}
+		});
 		enemyView[2].addAttack();
 	}
 	
 	public static void hit(){
-		JOptionPane.showMessageDialog(null, "Hit!");
+		showInformation("Hit!");
 	}
 	
 	public static void noHit(){
-		JOptionPane.showMessageDialog(null, "No hit");
+		showInformation("No hit");
 	}
 	
 	public void changePlayer(){
-		if(ingame && whichPlayer == 2){
-			nextTurn();
+		if(ingame && enemyView[whichPlayer].destroyedAll()){
+			endGame();
 		}
-		whichPlayer = whichPlayer%2 + 1; //neat :>
-		whichPlayerLabel.setText("Player " + whichPlayer);
-		if(placing){
-			updateView(mainView, grids[whichPlayer]);
+		else{
+			if(ingame && whichPlayer == 2){
+				nextTurn();
+			}
+			whichPlayer = whichPlayer%2 + 1; //neat :>
+			setPlayer();
+			if(placing){
+				updateView(mainView, grids[whichPlayer]);
+			}
+			else if(ingame){
+				showInformation("Player " + whichPlayer);
+				setAnnouncement("Choose a place to attack in");
+				updateView(mainView, enemyView[whichPlayer]);
+				updateView(secondView, grids[whichPlayer]);
+				System.out.println(lastMove);
+			}
 		}
-		else if(ingame){
-			JOptionPane.showMessageDialog(null, "Player " + whichPlayer);
-			announcementsLabel.setText("Choose a place to attack in");
-			updateView(mainView, enemyView[whichPlayer]);
-			updateView(secondView, grids[whichPlayer]);
-		}
-	}
-	
-	public void nextTurn(){
-		turnCounter++;
-		setTurn();
-	}
-	
-	public void setTurn(){
-		turnLabel.setText("Turn: " + turnCounter);
 	}
 	
 	/**
@@ -277,14 +346,8 @@ public class Board extends JPanel implements ActionListener{
 		view.updateUI();
 	}
 	
-	public char getPosition(){
-		return position;
-	}
-	
 	@Override
-	public void actionPerformed(ActionEvent e){
-		
-	}
+	public void actionPerformed(ActionEvent e){}
 	
 	public void keyBinding(){
 		Action vertical = new AbstractAction(){
@@ -293,7 +356,7 @@ public class Board extends JPanel implements ActionListener{
 				System.out.println("pos changed");
 				position = 'V';
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, standardShips);
+					nextShip(grids[whichPlayer], mainView, usedShips);
 				}
 			}
 		};
@@ -303,7 +366,7 @@ public class Board extends JPanel implements ActionListener{
 				System.out.println("pos changed");
 				position = 'H';
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, standardShips);
+					nextShip(grids[whichPlayer], mainView, usedShips);
 				}
 			}
 		};
@@ -320,7 +383,7 @@ public class Board extends JPanel implements ActionListener{
 				System.out.println("pos changed");
 				position = 'V';
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, standardShips);
+					nextShip(grids[whichPlayer], mainView, usedShips);
 				}
 			}
 		};
@@ -330,7 +393,7 @@ public class Board extends JPanel implements ActionListener{
 				System.out.println("pos changed");
 				position = 'H';
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, standardShips);
+					nextShip(grids[whichPlayer], mainView, usedShips);
 				}
 			}
 		};
