@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -29,6 +30,8 @@ public class Board extends JPanel implements ActionListener{
 	private int turnCounter;
 	private int whichPlayer;
 	private char position = 'H';
+	private int pos = 1;
+	private int view = 1;
 	private JLabel turnLabel;
 	private JLabel lastMoveLabel;
 	private JLabel announcementsLabel;
@@ -39,7 +42,8 @@ public class Board extends JPanel implements ActionListener{
 	private Grid[] enemyView = {new Grid(0), new Grid(), new Grid()}; //grids how enemy sees them
 	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new Submarine(), new PatrolBoat()};
 	private final Ship[] testShips = {new PatrolBoat()};
-	private Ship[] usedShips;
+	private final Ship[][] ships = {standardShips, testShips};
+	private int usedShips;
 	private String lastMove;
 	
 	/**
@@ -53,16 +57,28 @@ public class Board extends JPanel implements ActionListener{
 		
 		requestFocusInWindow();
 		getInputMap(WHEN_IN_FOCUSED_WINDOW);
-		//keyBinding();
+		//keyBinding(); works without it for now
 		setLayout(null);
 		
-		Action newGameAction = new AbstractAction("New game"){
+		String[] options = new String[] {"Standard ships", "Test ships"};
+	    int response = JOptionPane.showOptionDialog(null, "                            Choose ships", "Welcome", //change it, looks gross
+	    											JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+	    											null, options, options[0]);
 
+		usedShips = response;
+	    
+		Action newGameAction = new AbstractAction("New game"){
 			@Override
             public void actionPerformed(ActionEvent e) {
                 setupNewGame();
-                usedShips = testShips;
             }
+		};
+		
+		Action swapViewsAction = new AbstractAction("Swap views"){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				swapViews();
+			}
 		};
 		
 		//creating menu
@@ -71,7 +87,7 @@ public class Board extends JPanel implements ActionListener{
 		menu.setBounds(0, 0, 620, 23);
 		menu.add(newGameAction);
 		menu.addSeparator();
-		menu.add(new JButton("Swap views")); //TODO - add functionality
+		menu.add(swapViewsAction); //TODO - add functionality
 		menu.addSeparator();
 		menu.add(new JButton("Undo")); //TODO - add functionality
 		add(menu);
@@ -140,6 +156,11 @@ public class Board extends JPanel implements ActionListener{
 		lastMoveLabel.setText("Last move: " + lastMove);
 	}
 	
+	public void updateHits(){
+		grids[1].updateHits(enemyView[2]);
+		grids[2].updateHits(enemyView[1]);
+	}
+	
 	public static void showInformation(String message){
 		JOptionPane.showMessageDialog(null, message);
 	}
@@ -158,14 +179,20 @@ public class Board extends JPanel implements ActionListener{
 		grids[1] = new Grid();
 		grids[2] = new Grid();
 		
+		grids[1].setUsedShips(usedShips);
+		grids[2].setUsedShips(usedShips);
+		
 		turnCounter = 0;
 		setTurn();
 		whichPlayer = 1;
 		setPlayer();
 		
-		updateView(mainView, new Grid(0));
-		updateView(secondView, new Grid(0));
+		resetView();
 		
+		position = 'H';
+		
+		lastMove = "";
+		setLastMove();
 		setAnnouncement("Press \"New game\" to start");
 	}
 	
@@ -173,20 +200,11 @@ public class Board extends JPanel implements ActionListener{
 		
 		startView();
 		
-		grids[1] = new Grid();
-		grids[2] = new Grid();
-		
 		addBinding(mainView);
 		addBinding(secondView);
 		
-		turnCounter = 0;
-		whichPlayer = 1;
-		
-		setPlayer();
-		setTurn();
-		
-		//setupShips(grids[whichPlayer], mainView, standardShips);
-		setupShips(grids[whichPlayer], mainView, testShips);
+		setupShips(grids[whichPlayer], mainView, ships[usedShips]);
+		//setupShips(grids[whichPlayer], mainView, testShips);
 		
 		mainView.requestFocus();
 	}
@@ -196,6 +214,9 @@ public class Board extends JPanel implements ActionListener{
 		setAnnouncement("");
 		
 		setupAttack();
+		
+		grids[1].addHoverToAll();
+		grids[2].addHoverToAll();
 		
 		changePlayer();
 	}
@@ -231,6 +252,7 @@ public class Board extends JPanel implements ActionListener{
 			updateView(view, player);
 		}
 		else{
+			updateView(view, new Grid(0));
 			if(whichPlayer == 2){
 				player.removeActions();
 				showInformation("Ships placed, game starts now");
@@ -275,6 +297,7 @@ public class Board extends JPanel implements ActionListener{
 				updateLastMove();
 			}
 		});
+		enemyView[1].addLastMoveListener();
 		enemyView[1].addAttack();
 		
 		enemyView[2] = new Grid(grids[1]); //how Player 2 sees Player 1
@@ -290,6 +313,7 @@ public class Board extends JPanel implements ActionListener{
 				updateLastMove();
 			}
 		});
+		enemyView[2].addLastMoveListener();
 		enemyView[2].addAttack();
 	}
 	
@@ -315,11 +339,12 @@ public class Board extends JPanel implements ActionListener{
 				updateView(mainView, grids[whichPlayer]);
 			}
 			else if(ingame){
+				updateHits();
+				resetView();
 				showInformation("Player " + whichPlayer);
 				setAnnouncement("Choose a place to attack in");
 				updateView(mainView, enemyView[whichPlayer]);
 				updateView(secondView, grids[whichPlayer]);
-				System.out.println(lastMove);
 			}
 		}
 	}
@@ -346,60 +371,65 @@ public class Board extends JPanel implements ActionListener{
 		view.updateUI();
 	}
 	
+	public void resetView(){
+		updateView(mainView, new Grid(0));
+		updateView(secondView, new Grid(0));
+	}
+	
+	public void swapViews(){
+		if(view == -1){
+			updateView(mainView, enemyView[whichPlayer]);
+			updateView(secondView, grids[whichPlayer]);
+		}
+		else{
+			updateView(secondView, enemyView[whichPlayer]);
+			updateView(mainView, grids[whichPlayer]);
+		}
+		view *= -1;
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e){}
 	
 	public void keyBinding(){
-		Action vertical = new AbstractAction(){
+		Action change = new AbstractAction(){
 			@Override
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
-				position = 'V';
+				pos *= -1;
+				if(pos == 1){
+					position = 'H';
+				}
+				else{
+					position = 'V';
+				}
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, usedShips);
+					nextShip(grids[whichPlayer], mainView, ships[usedShips]);
 				}
 			}
 		};
-		Action horizontal = new AbstractAction(){
-			@Override
-			public void actionPerformed(ActionEvent e){
-				System.out.println("pos changed");
-				position = 'H';
-				if(placing){
-					nextShip(grids[whichPlayer], mainView, usedShips);
-				}
-			}
-		};
-		getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
-		getInputMap().put(KeyStroke.getKeyStroke("H"), "horizontal");
-		getActionMap().put("vertical", vertical);
-		getActionMap().put("horizontal", horizontal);
+		getInputMap().put(KeyStroke.getKeyStroke("Q"), "change");
+		getActionMap().put("change", change);
 	}
 	
 	public void addBinding(JPanel panel){
-		Action vertical = new AbstractAction(){
+		Action change = new AbstractAction(){
 			@Override
 			public void actionPerformed(ActionEvent e){
 				System.out.println("pos changed");
-				position = 'V';
+				pos *= -1;
+				if(pos == 1){
+					position = 'H';
+				}
+				else{
+					position = 'V';
+				}
 				if(placing){
-					nextShip(grids[whichPlayer], mainView, usedShips);
+					nextShip(grids[whichPlayer], mainView, ships[usedShips]);
 				}
 			}
 		};
-		Action horizontal = new AbstractAction(){
-			@Override
-			public void actionPerformed(ActionEvent e){
-				System.out.println("pos changed");
-				position = 'H';
-				if(placing){
-					nextShip(grids[whichPlayer], mainView, usedShips);
-				}
-			}
-		};
-		panel.getInputMap().put(KeyStroke.getKeyStroke("V"), "vertical");
-		panel.getInputMap().put(KeyStroke.getKeyStroke("H"), "horizontal");
-		panel.getActionMap().put("vertical", vertical);
-		panel.getActionMap().put("horizontal", horizontal);
+		panel.getInputMap().put(KeyStroke.getKeyStroke("Q"), "change");
+		panel.getActionMap().put("change", change);
 	}
 }
