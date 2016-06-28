@@ -26,8 +26,10 @@ public class Grid{
 	private MouseAdapter[][] hover;
 	private String[][] pos;
 	private String lastPosition;
-	private Ship[] ships = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
-	private Ship[] testShips = {new PatrolBoat()};
+	private final Ship[] standardShips = {new AircraftCarrier(), new Battleship(), new Destroyer(), new PatrolBoat(), new Submarine()};
+	private final Ship[] testShips = {new PatrolBoat()};
+	private final Ship[][] ships = {standardShips, testShips};
+	private int usedShips;
 	private int placedShips;
 	
 	/**
@@ -128,7 +130,7 @@ public class Grid{
 		}
 		
 		addHover();
-		addLastMoveListener();
+		//addLastMoveListener();
 	}
 	
 	/**
@@ -155,6 +157,10 @@ public class Grid{
 	
 	public String getLastPosition(){
 		return lastPosition;
+	}
+	
+	public void setUsedShips(int x){
+		usedShips = x;
 	}
 	
 	/**
@@ -391,9 +397,7 @@ public class Grid{
 	 */
 	public void updateHover(Ship ship, char position){
 		for(int i=0; i<hover.length; i++){
-			int tempI = i;
 			for(int j=0; j<hover[0].length; j++){
-				int tempJ = j;
 				buttons[i][j].removeMouseListener(hover[i][j]);
 				hover[i][j] = mouseEvent(i, j, ship, position);
 				buttons[i][j].addMouseListener(hover[i][j]);
@@ -423,6 +427,17 @@ public class Grid{
 		for(int i=0; i<buttons.length; i++){
 			for(int j=0; j<buttons[0].length; j++){
 				buttons[i][j].addMouseListener(hover[i][j]);
+			}
+		}
+	}
+	
+	public void addHoverToAll(){
+		for(int i=0; i<buttons.length; i++){
+			for(int j=0; j<buttons[0].length; j++){
+				removeMouseListeners(buttons[i][j]);
+				if(!coords[i][j]){
+					buttons[i][j].addMouseListener(hover(i,j));
+				}
 			}
 		}
 	}
@@ -580,9 +595,9 @@ public class Grid{
 	/**
 	 * checks if all ships are placed
 	 */
-	public boolean placedAll(){ //TODO - should be in board?
+	public boolean placedAll(){ 
 		//if(placedShips == ships.length){
-		if(placedShips == testShips.length){
+		if(placedShips == ships[usedShips].length){
 			return true;
 		}
 		else{
@@ -602,5 +617,21 @@ public class Grid{
 			}
 		}
 		return true;
+	}
+	
+	
+
+	public void updateHits(Grid enemyView){
+		for(int i=0; i<coords.length; i++){
+			for(int j=0; j<coords[0].length; j++){
+				if(enemyView.getButton(i, j).getBackground().equals(Color.GRAY)){
+					buttons[i][j].setBackground(Color.GRAY);
+					removeMouseListeners(buttons[i][j]);
+				}
+				else if(enemyView.getButton(i, j).getBackground().equals(Color.RED)){
+					buttons[i][j].setText("X");
+				}
+			}
+		}
 	}
 }
